@@ -13,7 +13,7 @@ def create_course_list():
             lcourses.append(files[:-4])
 
 
-menu_list = ['Add new round from file', 'Add new round from editor', 'List courses', 'Stats']
+menu_list = ['Add new round from file', 'Add new round from editor', 'List courses', 'Test One shot', 'Stats']
 
 
 def main_menu():
@@ -36,9 +36,19 @@ def get_list(li):
     if menu_choice == 3-1:
         course_editor()
     if menu_choice == 4-1:
+        test_shot()
+    if menu_choice == 5-1:
         stats_viewer()
 
+def test_shot():
+    print('Shot codes: t = tee, f = frairway, r = rough, s = sand, g = green')
+    shot_code = input('Initial Shot Code:')
+    next_shot_code = input('Landing Shot Code:')
 
+    baseline_data = ['PGA']
+    for x in baseline_data:
+        print(x, ' ', round(Baseline_data.loc[shot_code, x] - Baseline_data.loc[next_shot_code, x] - 1, 3))  # Calculation for strokes gained and add one shot for penalty
+    main_menu()
 
 def add_round_file():
     source = 'round.txt'
@@ -55,11 +65,10 @@ def add_round_file():
     current_shot = 1
     good_shots = 0
     bad_shots = 0
-    compare_score = 'PGA'  # Choices: PGA, 80, 90, 100, OriginalPGA
+    compare_score = 'PGA'  # Choices: PGA, 80, 90, 100, Par (Estimated from PGA + x%)
     course_data = pd.read_csv('./Courses/RiveSud.csv').set_index('Hole')  # Get Course data into dataframe, index is the hole #
 
     for x in range(len(vlround)):  # Loop all the shots
-        print(x)
         if 't' in vlround[x]:  # Change hole and reset shot count when on a tee
             current_hole += 1
             current_shot = 1
@@ -93,10 +102,10 @@ def add_round_file():
 
     round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained'])  # Create dataframe from list
 
-    lshot_types = ['Drive', 'Long (+231 yds)', 'Approach (101 - 230 yds)', 'Approach (21 - 100 yds)', 'Around the Green (0 - 20 yds)', 'Bunker', 'Putting']  # Different shot types
+    lshot_types = ['Drive', 'Long (+231 yds)', 'Long Approach (176 - 230 yds)', 'Medium Approach (126 - 175 yds)', 'Short Approach (81 - 125 yds)', 'Pitching (21 - 80 yds)', 'Around the Green (0 - 20 yds)', 'Bunker', 'Putting']  # Different shot types
 
     for x in lshot_types:  # Get Strokes Gained per shot
-        print(x, ' - Count:', round(round_df['StrokesGained'][round_df['ShotType'] == x].count(),2), '   Avg:', round(round_df['StrokesGained'][round_df['ShotType'] == x].mean(),2),'   Worst:', round(round_df['StrokesGained'][round_df['ShotType'] == x].min(),2), '   Best:', round(round_df['StrokesGained'][round_df['ShotType'] == x].max(),2), '   Total:', round(round_df['StrokesGained'][round_df['ShotType'] == x].sum(),2))
+        print(x, ',Count:', round(round_df['StrokesGained'][round_df['ShotType'] == x].count(), 2), ',Avg:', round(round_df['StrokesGained'][round_df['ShotType'] == x].mean(), 2), ',Worst:', round(round_df['StrokesGained'][round_df['ShotType'] == x].min(), 2), ',Best:', round(round_df['StrokesGained'][round_df['ShotType'] == x].max(), 2), ',Total:', round(round_df['StrokesGained'][round_df['ShotType'] == x].sum(), 2))
 
     total_shots = 0
     for x in range(len(course_data)):  # Get scores per hole for the round
@@ -108,6 +117,7 @@ def add_round_file():
     print('Total:', total_shots,' ',score,' Good Shots:',good_shots, ' Flobbed Shots:', bad_shots)  # Print total score for the round
 
     round_df.to_csv('out.csv')
+
 
 def add_round_editor():
     print(2)
