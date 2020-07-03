@@ -29,14 +29,13 @@ def get_list(li):
     if menu_choice < 0 or menu_choice > (len(li) - 1):
         print('Invalid Choice')
         return ''
-    print(menu_choice)
-    if menu_choice == 0:
+    if menu_choice == 1-1:
         add_round_file()
-    if menu_choice == 1:
+    if menu_choice == 2-1:
         add_round_editor()
-    if menu_choice == 2:
+    if menu_choice == 3-1:
         course_editor()
-    if menu_choice == 3:
+    if menu_choice == 4-1:
         stats_viewer()
 
 
@@ -68,9 +67,9 @@ def add_round_file():
         try:  # count as holed if next shot is on tee or last shot
             next_shot_code = vlround[x + 1]
         except IndexError:
-            next_shot_code = 'holed'  # Holed is SG 0 in data
+            next_shot_code = 'holed'  # Means last shot of the round, out of range: Holed is SG 0 in data
         if 't' in next_shot_code:
-            next_shot_code = 'holed'  # Holed is SG 0 in data
+            next_shot_code = 'holed'  # Next shot on tee (next hole) = holed is SG 0 in data
 
         if 'p' in vlround[x]:  # Determine the current shot code
             shot_code = vlround[x][:-1]  # remove the p from the shot code and add a shot for the penality
@@ -106,7 +105,7 @@ def add_round_file():
 
     score = total_shots - course_data['Par'].sum()
     score = '+' + str(score)
-    print('Total: ', total_shots,' ',score,' Good Shots: ',good_shots, ' Flobbed Shots: ', bad_shots)  # Print total score for the round
+    print('Total:', total_shots,' ',score,' Good Shots:',good_shots, ' Flobbed Shots:', bad_shots)  # Print total score for the round
 
     round_df.to_csv('out.csv')
 
