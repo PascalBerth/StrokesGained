@@ -142,7 +142,6 @@ def add_round_editor():
 
         s_input = ''
 
-        # TODO: make sure input is valid shot code
         while s_input != 'h':
             s_input = input('Next Shot: ')
 
@@ -194,12 +193,12 @@ def add_round_editor():
         else:
             strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
 
-        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], Baseline_data.loc[shot_code, 'Description'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained, 3)])  # Create list of shots data
+        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained, 3)])  # Create list of shots data
         current_shot += 1
 
     print(round_data)
 
-    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
+    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
     round_df.to_csv('ShotDB.csv', mode='a', header=False)
 
 
@@ -208,11 +207,61 @@ def course_editor():
 
 
 def stats_viewer():
-    print(4)
+
+    print('\n')
+    print("%s. %s" % (1, 'View Last Round'))
+    print("%s. %s" % (2, 'Last 5 rounds'))
+    print("%s. %s" % (3, 'This year stats'))
+    print("%s. %s" % (4, 'Overall'))
+    print("%s. %s" % (5, ''))
+    print("%s. %s" % ('Q', 'Quit'))
+
+    menu_item = input("\nChoose: ")
+
+    if menu_item == '1': show_stats('1')
+    if menu_item == '2': show_stats('5')
+    if menu_item == '3': show_stats('year')
+    if menu_item == '4': show_stats('all')
+    if menu_item == '5': show_stats('all')
+    if menu_item == 'q' or menu_item == 'Q': quit()
+
+    main_menu()  # Reset if invalid choice
 
 
-def shot_valid(code):
-    if 'h' in code :
+def show_stats(p):
+
+    shotdb = pd.read_csv('./ShotDB.csv')
+
+    if p == '1':
+        date = shotdb['Date'].max()
+
+        # Add column in df with the shot type
+
+
+
+        lshot_types = ['Drive', 'Long (+231 yds)', 'Approach (101 - 230 yds)', 'Approach (21 - 100 yds)', 'Around the Green (0 - 20 yds)', 'Bunker', 'Putting']  # Different shot types
+
+        for x in lshot_types:  # Get Strokes Gained per shot
+            print(x, ' - Count:', round(round_df['StrokesGained'][round_df['ShotType'] == x].count(),2), '   Avg:', round(round_df['StrokesGained'][round_df['ShotType'] == x].mean(),2),'   Worst:', round(round_df['StrokesGained'][round_df['ShotType'] == x].min(),2), '   Best:', round(round_df['StrokesGained'][round_df['ShotType'] == x].max(),2), '   Total:', round(round_df['StrokesGained'][round_df['ShotType'] == x].sum(),2))
+
+        total_shots = 0
+        for x in range(len(Course_data)):  # Get scores per hole for the round
+            print('Hole #', x + 1, ' - ', round_df['Shot #'][round_df['Hole #'] == x + 1].max())
+            total_shots += round_df['Shot #'][round_df['Hole #'] == x + 1].max()
+
+        score = total_shots - Course_data['Par'].sum()
+        score = '+' + str(score)
+        print('Total: ', total_shots,' ',score,' Good Shots: ',good_shots, ' Flobbed Shots: ', bad_shots)  # Print total score for the round
+
+
+    # print(shotdb)
+    # print(shotdb['Date'].unique())
+
+
+
+
+def shot_valid(code):  # Determine if shot is valid TODO: Find from data file
+    if 'h' in code:
         return True
 
     if not code[:-1].isnumeric():
@@ -221,64 +270,11 @@ def shot_valid(code):
     if not any(s in code for s in ('t', 's', 'f', 'g', 'r')):
         return False
 
-
-
     return True
 
 
 main_menu()
 
-# source = 'round.txt'
-#     with open(source) as f:
-#         vlround = f.readlines()
-#     vlround = [x.strip() for x in vlround]
-#     print(vlround)
-#     vdate = input("\nEnter Date: ")
-#     vcourse = input("\nEnter Course: ")
-#
-#     #  Initiate Variables
-#     round_data = []
-#     current_hole = 0
-#     current_shot = 1
-#     good_shots = 0
-#     bad_shots = 0
-#     compare_score = 'PGA'  # Choices: PGA, 80, 90, 100, Par (Estimated from PGA + x%)
-#     course_data = pd.read_csv('./Courses/RiveSud.csv').set_index('Hole')  # Get Course data into dataframe, index is the hole #
-#
-#     for x in range(len(vlround)):  # Loop all the shots
-#         if 't' in vlround[x]:  # Change hole and reset shot count when on a tee
-#             current_hole += 1
-#             current_shot = 1
-#
-#         try:  # count as holed if next shot is on tee or last shot
-#             next_shot_code = vlround[x + 1]
-#         except IndexError:
-#             next_shot_code = 'holed'  # Means last shot of the round, out of range: Holed is SG 0 in data
-#         if 't' in next_shot_code:
-#             next_shot_code = 'holed'  # Next shot on tee (next hole) = holed is SG 0 in data
-#
-#         if 'p' in vlround[x]:  # Determine the current shot code
-#             shot_code = vlround[x][:-1]  # remove the p from the shot code and add a shot for the penality
-#             current_shot += 1
-#         else:
-#             shot_code = vlround[x]
-#
-#         if 'p' in next_shot_code:
-#             next_shot_code = next_shot_code[:-1]  # remove the p
-#             SG = Baseline_data.loc[shot_code, compare_score] - Baseline_data.loc[next_shot_code, compare_score] - 2  # Calculation for strokes gained and add one shot for penalty
-#         else:
-#             SG = Baseline_data.loc[shot_code, compare_score] - Baseline_data.loc[next_shot_code, compare_score] - 1  # Calculation for strokes gained
-#
-#         if SG > 0.2 and not Baseline_data.loc[shot_code,'Description'] == 'Putting':  # Add a good shot if SG is over 0.2, exclude putting
-#             good_shots += 1
-#         if SG < -0.6 and not Baseline_data.loc[shot_code,'Description'] == 'Putting':  # Add a bad shot if SG is less  -0.6, exclude putting
-#             bad_shots += 1
-#
-#         round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], Baseline_data.loc[shot_code,'Description'],Baseline_data.loc[shot_code,compare_score], SG])  # Create list of shots data
-#         current_shot += 1
-#
-#     round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained'])  # Create dataframe from list
-#
 #     lshot_types = ['Drive', 'Long (+231 yds)', 'Long Approach (176 - 230 yds)', 'Medium Approach (126 - 175 yds)', 'Short Approach (81 - 125 yds)', 'Pitching (21 - 80 yds)', 'Around the Green (0 - 20 yds)', 'Bunker', 'Putting']  # Different shot types
 #
 #     for x in lshot_types:  # Get Strokes Gained per shot
