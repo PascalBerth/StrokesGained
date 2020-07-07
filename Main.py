@@ -40,8 +40,17 @@ def main_menu():
 def test_shot():
     print('\nShot codes: t = tee, f = frairway, r = rough, s = sand, g = green', '   Press Q to quit')
 
-    shot1 = input('\nInitial Shot Code: ')  # TODO: Validate if valid shot code
-    shot2 = input('Landing Shot Code: ')  # TODO: Validate if valid shot code
+    shot1 = input('\nInitial Shot Code: ')
+
+    if not shot_valid(shot1):
+        print('Invalid Shot Code: ' + str(shot1))
+        test_shot()
+
+    shot2 = input('Landing Shot Code: ')
+
+    if not shot_valid(shot2):
+        print('Invalid Shot Code: ' + str(shot2))
+        test_shot()
 
     if shot1 == 'q' or shot1 == 'Q':
         main_menu()
@@ -137,13 +146,16 @@ def add_round_editor():
         while s_input != 'h':
             s_input = input('Next Shot: ')
 
-            if 'h' in s_input:
-                if s_input != 'h':
-                    s_input = s_input[:-1]
+            if shot_valid(s_input):
+                if 'h' in s_input:
+                    if s_input != 'h':
+                        s_input = s_input[:-1]
+                        round_data.append(s_input)
+                        s_input = 'h'
+                else:
                     round_data.append(s_input)
-                    s_input = 'h'
             else:
-                round_data.append(s_input)
+                print('Invalid Shot Code: ' + str(s_input))
 
     current_hole = 0
     current_shot = 1
@@ -200,7 +212,18 @@ def stats_viewer():
 
 
 def shot_valid(code):
-    print(code)
+    if 'h' in code :
+        return True
+
+    if not code[:-1].isnumeric():
+        return False
+
+    if not any(s in code for s in ('t', 's', 'f', 'g', 'r')):
+        return False
+
+
+
+    return True
 
 
 main_menu()
