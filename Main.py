@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from dateutil import parser
 
 # Variables init
 Baseline_data = pd.read_csv("data.csv").set_index('Code')  # Get baseline data into dataframe, index is the shot code
@@ -7,6 +8,7 @@ lcourses = []
 
 
 def create_course_list():  # Create list of existing courses
+    lcourses = []
     global lcourses
     for r, d, f in os.walk('./Courses'):
         for files in f:
@@ -53,11 +55,135 @@ def test_shot():
 
 
 def add_round_file():
+    with open('round.txt') as f:  # Get the round.txt data to a list
+        vlround = f.readlines()
 
+    vlround = [x.strip() for x in vlround]  # Remove new lines
+
+    vdate = parser.parse(input("\nEnter date: "))
+
+    print('\nCourses list:')
+
+    for x in range(len(lcourses)):
+        print(x+1, '-', lcourses[x])
+
+    vcourse = input("\nChoose Course: ")
+
+    vcourse = lcourses[int(vcourse)-1]
+
+    round_data = []
+    course_data = pd.read_csv('./Courses/' + vcourse + '.csv').set_index('Hole')
+
+    current_hole = 0
+    current_shot = 1
+
+    for x in range(len(vlround)):
+
+        if 't' in vlround[x]:  # Change hole and reset shot count when on a tee
+            current_hole += 1
+            current_shot = 1
+        try:  # count as holed if next shot is on tee or last shot
+            next_shot_code = vlround[x + 1]
+        except IndexError:
+            next_shot_code = 'holed'  # Means last shot of the round, out of range: Holed is SG 0 in data
+
+        if 't' in next_shot_code:
+            next_shot_code = 'holed'  # Next shot on tee (next hole) = holed is SG 0 in data
+
+        if 'p' in vlround[x]:  # Determine the current shot code
+            shot_code = vlround[x][:-1]  # remove the p from the shot code and add a shot for the penality
+            current_shot += 1
+        else:
+            shot_code = vlround[x]
+
+        if 'p' in next_shot_code:
+            next_shot_code = next_shot_code[:-1]  # remove the p
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
+        else:
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
+
+        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], Baseline_data.loc[shot_code, 'Description'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained,3)])  # Create list of shots data
+        current_shot += 1
+
+    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
+    round_df.to_csv('ShotDB.csv', mode='a', header=False)
 
 
 def add_round_editor():
-    print(2)
+    vdate = parser.parse(input("\nEnter date: "))
+    print(vdate)
+
+    print('\nCourses list:')
+
+    for x in range(len(lcourses)):
+        print(x + 1, '-', lcourses[x])
+
+    vcourse = input("\nChoose Course: ")
+
+    vcourse = lcourses[int(vcourse) - 1]
+
+    course_data = pd.read_csv('./Courses/' + vcourse + '.csv').set_index('Hole')
+    round_data = []
+
+    for label, row in course_data.iterrows():
+        s = str(course_data.loc[label, 'Distance'])+'t'
+        print('Hole ' + str(label) + ':')
+        print(s + ' Start')
+        round_data.append(s)
+
+        s_input = ''
+
+        while s_input != 'h':
+            s_input = input('Next Shot: ')
+            print(s_input)
+            if not s_input == 'h':
+                round_data.append(s_input)
+                print('not' + str(s_input))
+
+    current_hole = 0
+    current_shot = 1
+
+    vlround = round_data
+    vlround = [x.strip() for x in vlround]
+
+    round_data = []
+
+    print(vlround)
+
+    for x in range(len(vlround)):
+
+        if 't' in vlround[x]:  # Change hole and reset shot count when on a tee
+            current_hole += 1
+            current_shot = 1
+        try:  # count as holed if next shot is on tee or last shot
+            next_shot_code = vlround[x + 1]
+        except IndexError:
+            next_shot_code = 'holed'  # Means last shot of the round, out of range: Holed is SG 0 in data
+
+        if 't' in next_shot_code:
+            next_shot_code = 'holed'  # Next shot on tee (next hole) = holed is SG 0 in data
+
+        if 'p' in vlround[x]:  # Determine the current shot code
+            shot_code = vlround[x][:-1]  # remove the p from the shot code and add a shot for the penality
+            current_shot += 1
+        else:
+            shot_code = vlround[x]
+
+        print(shot_code,next_shot_code)
+
+        if 'p' in next_shot_code:
+            next_shot_code = next_shot_code[:-1]  # remove the p
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
+        else:
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
+
+        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], Baseline_data.loc[shot_code, 'Description'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained, 3)])  # Create list of shots data
+        current_shot += 1
+
+    print(round_data)
+
+    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
+    round_df.to_csv('ShotDB.csv', mode='a', header=False)
 
 
 def course_editor():
