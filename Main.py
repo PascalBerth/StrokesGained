@@ -8,8 +8,8 @@ lcourses = []
 
 
 def create_course_list():  # Create list of existing courses
-    lcourses = []
     global lcourses
+    lcourses = []
     for r, d, f in os.walk('./Courses'):
         for files in f:
             lcourses.append(files[:-4])
@@ -133,12 +133,17 @@ def add_round_editor():
 
         s_input = ''
 
+        # TODO: make sure input is valid shot code
         while s_input != 'h':
             s_input = input('Next Shot: ')
-            print(s_input)
-            if not s_input == 'h':
+
+            if 'h' in s_input:
+                if s_input != 'h':
+                    s_input = s_input[:-1]
+                    round_data.append(s_input)
+                    s_input = 'h'
+            else:
                 round_data.append(s_input)
-                print('not' + str(s_input))
 
     current_hole = 0
     current_shot = 1
@@ -192,6 +197,10 @@ def course_editor():
 
 def stats_viewer():
     print(4)
+
+
+def shot_valid(code):
+    print(code)
 
 
 main_menu()
@@ -342,9 +351,6 @@ main_menu()
 # #  Date, Course, Hole x Score, Hole x FiR, Hole x GiR, Hole x Putts, Total Score, Compared to Par, FiR %, GiR %, Putts Total, Putts Avg.
 #
 #
-# # TODO  tool to create round.csv if round.csv doesn't exist
-# # TODO  read round file into list line1=date line2=course then shotscode
-# # TODO  Create database of shots  shotdatabase = date, course, shot code, hole#, shot#, par, type, SG-(CompareScore)
 # # TODO
 # # TODO
 # # TODO
