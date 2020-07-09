@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from dateutil import parser
+import re
 
 # Variables init
 Baseline_data = pd.read_csv("data.csv").set_index('Code')  # Get baseline data into dataframe, index is the shot code
@@ -58,7 +59,8 @@ def test_shot():
     if shot2 == 'q' or shot2 == 'Q':
         main_menu()
 
-    print('Strokes Gained PGA :', ' ', round(Baseline_data.loc[shot1, 'PGA'] - Baseline_data.loc[shot2, 'PGA'] - 1, 3))  # Calculation for strokes gained
+    print('Strokes Gained PGA :', ' ', round(Baseline_data.loc[shot1, 'PGA'] - Baseline_data.loc[shot2, 'PGA'] - 1,
+                                             3))  # Calculation for strokes gained
     print()
     test_shot()
 
@@ -74,11 +76,11 @@ def add_round_file():
     print('\nCourses list:')
 
     for x in range(len(lcourses)):
-        print(x+1, '-', lcourses[x])
+        print(x + 1, '-', lcourses[x])
 
     vcourse = input("\nChoose Course: ")
 
-    vcourse = lcourses[int(vcourse)-1]
+    vcourse = lcourses[int(vcourse) - 1]
 
     round_data = []
     course_data = pd.read_csv('./Courses/' + vcourse + '.csv').set_index('Hole')
@@ -107,14 +109,20 @@ def add_round_file():
 
         if 'p' in next_shot_code:
             next_shot_code = next_shot_code[:-1]  # remove the p
-            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[
+                next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
         else:
-            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[
+                next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
 
-        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], Baseline_data.loc[shot_code, 'Description'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained,3)])  # Create list of shots data
+        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'],
+                           Baseline_data.loc[shot_code, 'Description'], round(Baseline_data.loc[shot_code, 'PGA'], 3),
+                           round(strokes_gained, 3)])  # Create list of shots data
         current_shot += 1
 
-    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
+    round_df = pd.DataFrame(round_data,
+                            columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'ShotType', 'PGA Avg',
+                                     'StrokesGained']).set_index('Date')  # Create dataframe from list
     round_df.to_csv('ShotDB.csv', mode='a', header=False)
 
 
@@ -135,7 +143,7 @@ def add_round_editor():
     round_data = []
 
     for label, row in course_data.iterrows():
-        s = str(course_data.loc[label, 'Distance'])+'t'
+        s = str(course_data.loc[label, 'Distance']) + 't'
         print('Hole ' + str(label) + ':')
         print(s + ' Start')
         round_data.append(s)
@@ -185,20 +193,25 @@ def add_round_editor():
         else:
             shot_code = vlround[x]
 
-        print(shot_code,next_shot_code)
+        print(shot_code, next_shot_code)
 
         if 'p' in next_shot_code:
             next_shot_code = next_shot_code[:-1]  # remove the p
-            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[
+                next_shot_code, 'PGA'] - 2  # Calculation for strokes gained and add one shot for penalty
         else:
-            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
+            strokes_gained = Baseline_data.loc[shot_code, 'PGA'] - Baseline_data.loc[
+                next_shot_code, 'PGA'] - 1  # Calculation for strokes gained
 
-        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'], round(Baseline_data.loc[shot_code, 'PGA'], 3), round(strokes_gained, 3)])  # Create list of shots data
+        round_data.append([vdate, vcourse, vlround[x], current_hole, current_shot, course_data.loc[current_hole, 'Par'],
+                           round(Baseline_data.loc[shot_code, 'PGA'], 3),
+                           round(strokes_gained, 3)])  # Create list of shots data
         current_shot += 1
 
     print(round_data)
 
-    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'PGA Avg', 'StrokesGained']).set_index('Date')  # Create dataframe from list
+    round_df = pd.DataFrame(round_data, columns=['Date', 'Course', 'ShotCode', 'Hole #', 'Shot #', 'Par', 'PGA Avg',
+                                                 'StrokesGained']).set_index('Date')  # Create dataframe from list
     round_df.to_csv('ShotDB.csv', mode='a', header=False)
 
 
@@ -207,21 +220,20 @@ def course_editor():
 
 
 def stats_viewer():
-
     print('\n')
     print("%s. %s" % (1, 'View Last Round'))
-    print("%s. %s" % (2, 'Last 5 rounds'))
-    print("%s. %s" % (3, 'This year stats'))
-    print("%s. %s" % (4, 'Overall'))
-    print("%s. %s" % (5, ''))
+    print("%s. %s" % (2, 'Choose recent round'))
+    print("%s. %s" % (3, 'Last 5 rounds'))
+    print("%s. %s" % (4, 'This year stats (Detailed)'))
+    print("%s. %s" % (5, 'Overall (Detailed)'))
     print("%s. %s" % ('Q', 'Quit'))
 
     menu_item = input("\nChoose: ")
 
     if menu_item == '1': show_stats('1')
-    if menu_item == '2': show_stats('5')
-    if menu_item == '3': show_stats('year')
-    if menu_item == '4': show_stats('all')
+    if menu_item == '2': show_stats('recent')
+    if menu_item == '3': show_stats('5')
+    if menu_item == '4': show_stats('year')
     if menu_item == '5': show_stats('all')
     if menu_item == 'q' or menu_item == 'Q': quit()
 
@@ -229,35 +241,60 @@ def stats_viewer():
 
 
 def show_stats(p):
-
     shotdb = pd.read_csv('./ShotDB.csv')
 
     if p == '1':
         date = shotdb['Date'].max()
 
-        # Add column in df with the shot type
+        category = []
 
+        for label, row in shotdb.iterrows():
+            category.append(get_category(row['ShotCode']))
+        shotdb['ShotType'] = category
+        shotdb.to_csv('test.csv')
 
-
-        lshot_types = ['Drive', 'Long (+231 yds)', 'Approach (101 - 230 yds)', 'Approach (21 - 100 yds)', 'Around the Green (0 - 20 yds)', 'Bunker', 'Putting']  # Different shot types
+        lshot_types = ['Drive', 'Long (+231 yds)', 'Long Approach (176 - 230 yds)', 'Medium Approach (126 - 175 yds)',
+                       'Short Approach (81 - 125 yds)', 'Pitching (21 - 80 yds)', 'Around the Green (0 - 20 yds)',
+                       'Fairway Bunker', 'Greenside Bunker', 'Putting']
 
         for x in lshot_types:  # Get Strokes Gained per shot
-            print(x, ' - Count:', round(round_df['StrokesGained'][round_df['ShotType'] == x].count(),2), '   Avg:', round(round_df['StrokesGained'][round_df['ShotType'] == x].mean(),2),'   Worst:', round(round_df['StrokesGained'][round_df['ShotType'] == x].min(),2), '   Best:', round(round_df['StrokesGained'][round_df['ShotType'] == x].max(),2), '   Total:', round(round_df['StrokesGained'][round_df['ShotType'] == x].sum(),2))
+            if not shotdb.loc[(shotdb['Date'] == date) & (
+                    shotdb['ShotType'] == x), 'StrokesGained'].count() == 0:  # if a shot type has no occurence, skip it
+                print(x, ' - Count:',
+                      shotdb.loc[(shotdb['Date'] == date) & (shotdb['ShotType'] == x), 'StrokesGained'].count(),
+                      '   Avg:',
+                      round(shotdb.loc[(shotdb['Date'] == date) & (shotdb['ShotType'] == x), 'StrokesGained'].mean(),
+                            2), '   Worst:',
+                      round(shotdb.loc[(shotdb['Date'] == date) & (shotdb['ShotType'] == x), 'StrokesGained'].min(), 2),
+                      '   Best:',
+                      round(shotdb.loc[(shotdb['Date'] == date) & (shotdb['ShotType'] == x), 'StrokesGained'].max(), 2),
+                      '   Total:',
+                      round(shotdb.loc[(shotdb['Date'] == date) & (shotdb['ShotType'] == x), 'StrokesGained'].sum(), 2))
 
-        total_shots = 0
-        for x in range(len(Course_data)):  # Get scores per hole for the round
-            print('Hole #', x + 1, ' - ', round_df['Shot #'][round_df['Hole #'] == x + 1].max())
-            total_shots += round_df['Shot #'][round_df['Hole #'] == x + 1].max()
+    if p == 'all':
 
-        score = total_shots - Course_data['Par'].sum()
-        score = '+' + str(score)
-        print('Total: ', total_shots,' ',score,' Good Shots: ',good_shots, ' Flobbed Shots: ', bad_shots)  # Print total score for the round
+        category = []
 
+        for label, row in shotdb.iterrows():
+            category.append(get_category_detailed(row['ShotCode']))
+        shotdb['ShotType'] = category
+        shotdb.to_csv('test.csv')
 
-    # print(shotdb)
-    # print(shotdb['Date'].unique())
+        lshot_types = ['Drive', 'Long (+231 yds)', 'Approach (201 - 230 yds)',
+                       'Approach (181 - 200 yds)', 'Approach (161 - 180 yds)', 'Approach (141 - 160 yds)',
+                       'Approach (121 - 140 yds)', 'Approach (101 - 120 yds)', 'Approach (81 - 100 yds)',
+                       'Pitching (51 - 80 yds)', 'Pitching (21 - 50 yds)', 'Around the Green (11 - 20 yds)',
+                       'Around the Green (0 - 10 yds)', 'Fairway Bunker', 'Greenside Bunker', 'Putting (+30 ft)',
+                       'Putting (21 - 30 ft)', 'Putting (12 - 20 ft)', 'Putting (6 - 12 ft)', 'Putting (-5 ft)'
+                       ]
 
-
+        for x in lshot_types:  # Get Strokes Gained per shot
+            if not shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].count() == 0:  # if a shot type has no occurence, skip it
+                print('{:<32s}{:<7s}{:>3d}{:>9s}{:>7.2f}{:>9s}{:>7.2f}{:>9s}{:>7.2f}{:>9s}{:>7.2f}'.format(x, '   Count:', shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].count(),
+                      '   Avg:', round(shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].mean(), 2),
+                      '   Worst:', round(shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].min(), 2),
+                      '   Best:', round(shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].max(), 2),
+                      '   Total:', round(shotdb.loc[(shotdb['ShotType'] == x), 'StrokesGained'].sum(), 2)))
 
 
 def shot_valid(code):  # Determine if shot is valid TODO: Find from data file
@@ -271,6 +308,121 @@ def shot_valid(code):  # Determine if shot is valid TODO: Find from data file
         return False
 
     return True
+
+
+def get_category(code):
+    dist = int(re.sub(r"\D", "", code))
+    # print(dist, code)
+
+    if 't' in code:
+        if dist in range(230, 800):
+            return 'Drive'
+        if dist in range(176, 230):
+            return 'Long Approach (176 - 230 yds)'
+        if dist in range(126, 175):
+            return 'Medium Approach (126 - 175 yds)'
+        if dist in range(81, 125):
+            return 'Short Approach (81 - 125 yds)'
+        if dist in range(21, 80):
+            return 'Pitching (21 - 80 yds)'
+        if dist in range(0, 20):
+            return 'Around the Green (0 - 20 yds)'
+
+    if 'f' in code:
+        if dist in range(230, 800):
+            return 'Long (+231 yds)'
+        if dist in range(176, 230):
+            return 'Long Approach (176 - 230 yds)'
+        if dist in range(126, 175):
+            return 'Medium Approach (126 - 175 yds)'
+        if dist in range(81, 125):
+            return 'Short Approach (81 - 125 yds)'
+        if dist in range(21, 80):
+            return 'Pitching (21 - 80 yds)'
+        if dist in range(0, 20):
+            return 'Around the Green (0 - 20 yds)'
+
+    if 'r' in code:
+        if dist in range(230, 800):
+            return 'Long (+231 yds)'
+        if dist in range(176, 230):
+            return 'Long Approach (176 - 230 yds)'
+        if dist in range(126, 175):
+            return 'Medium Approach (126 - 175 yds)'
+        if dist in range(81, 125):
+            return 'Short Approach (81 - 125 yds)'
+        if dist in range(21, 80):
+            return 'Pitching (21 - 80 yds)'
+        if dist in range(0, 21):
+            return 'Around the Green (0 - 20 yds)'
+
+    if 's' in code:
+        if dist >= 50:
+            return 'Fairway Bunker'
+        else:
+            return 'Greenside Bunker'
+
+    if 'g' in code:
+        return 'Putting'
+
+
+def get_category_detailed(code):
+    dist = int(re.sub(r"\D", "", code))
+
+    if 't' in code:
+        if dist in range(231, 801): return 'Drive'
+        if dist in range(201, 231): return 'Approach (201 - 230 yds)'
+        if dist in range(181, 201): return 'Approach (181 - 200 yds)'
+        if dist in range(161, 181): return 'Approach (161 - 180 yds)'
+        if dist in range(141, 161): return 'Approach (141 - 160 yds)'
+        if dist in range(121, 141): return 'Approach (121 - 140 yds)'
+        if dist in range(101, 121): return 'Approach (101 - 120 yds)'
+        if dist in range(81, 101): return 'Approach (81 - 100 yds)'
+        if dist in range(51, 81): return 'Pitching (51 - 80 yds)'
+        if dist in range(21, 51): return 'Pitching (21 - 50 yds)'
+        if dist in range(11, 21): return 'Around the Green (11 - 20 yds)'
+        if dist in range(0, 11): return 'Around the Green (0 - 10 yds)'
+
+    if 'f' in code:
+        if dist in range(231, 800): return 'Long (+231 yds)'
+        if dist in range(201, 231): return 'Approach (201 - 230 yds)'
+        if dist in range(181, 201): return 'Approach (181 - 200 yds)'
+        if dist in range(161, 181): return 'Approach (161 - 180 yds)'
+        if dist in range(141, 161): return 'Approach (141 - 160 yds)'
+        if dist in range(121, 141): return 'Approach (121 - 140 yds)'
+        if dist in range(101, 121): return 'Approach (101 - 120 yds)'
+        if dist in range(81, 101): return 'Approach (81 - 100 yds)'
+        if dist in range(51, 81): return 'Pitching (51 - 80 yds)'
+        if dist in range(21, 51): return 'Pitching (21 - 50 yds)'
+        if dist in range(11, 21): return 'Around the Green (11 - 20 yds)'
+        if dist in range(0, 11): return 'Around the Green (0 - 10 yds)'
+
+    if 'r' in code:
+        if dist in range(231, 800): return 'Long (+231 yds)'
+        if dist in range(201, 231): return 'Approach (201 - 230 yds)'
+        if dist in range(181, 201): return 'Approach (181 - 200 yds)'
+        if dist in range(161, 181): return 'Approach (161 - 180 yds)'
+        if dist in range(141, 161): return 'Approach (141 - 160 yds)'
+        if dist in range(121, 141): return 'Approach (121 - 140 yds)'
+        if dist in range(101, 121): return 'Approach (101 - 120 yds)'
+        if dist in range(81, 101): return 'Approach (81 - 100 yds)'
+        if dist in range(51, 81): return 'Pitching (51 - 80 yds)'
+        if dist in range(21, 51): return 'Pitching (21 - 50 yds)'
+        if dist in range(11, 21): return 'Around the Green (11 - 20 yds)'
+        if dist in range(0, 11): return 'Around the Green (0 - 10 yds)'
+
+    if 's' in code:
+        if dist >= 50:
+            return 'Fairway Bunker'
+        else:
+            return 'Greenside Bunker'
+
+    if 'g' in code:
+        if dist >= 30: return 'Putting (+30 ft)'
+        if dist in range(21, 30): return 'Putting (21 - 30 ft)'
+        if dist in range(12, 21): return 'Putting (12 - 20 ft)'
+        if dist in range(6, 12): return 'Putting (6 - 12 ft)'
+        if dist <= 5: return 'Putting (-5 ft)'
 
 
 main_menu()
